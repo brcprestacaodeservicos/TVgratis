@@ -97,6 +97,7 @@
                     <button onclick="filterCategory('Filmes')" class="cat-btn bg-[#222] text-gray-400 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">Filmes</button>
                     <button onclick="filterCategory('Esportes')" class="cat-btn bg-[#222] text-gray-400 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">Esportes</button>
                     <button onclick="filterCategory('Músicas')" class="cat-btn bg-[#222] text-gray-400 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">Músicas</button>
+                    <button onclick="filterCategory('Infantil')" class="cat-btn bg-[#222] text-gray-400 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">Infantil</button>
                 </div>
                 <div id="channel-list" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
             </div>
@@ -204,33 +205,50 @@
             { name: "Tears of Steel (4K)", category: "Filmes", url: "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8" },
             { name: "Big Buck Bunny", category: "Filmes", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" },
             { name: "DarkFlix HD", category: "Filmes", url: "https://video01.soultv.com.br/darkflix/darkflix/playlist.m3u8" },
-            { name: "SBT", category: "Geral", url: "https://youtu.be/ABVQXgr2LW4" }
-            { name: "+SBT", category: "Geral", url: "https://mais.sbt.com.br/" }
-            { name: "BAND", category: "Geral", url: "https://www.band.com.br/ao-vivo" }
-            { name: "REDE TV", category: "Geral", url: "https://geo.dailymotion.com/player/xgrus.html?video=kYe5OYErhldJ75Azib2" }
-            { name: "REDE TV 2", category: "Geral", url: " https://tv02.zas.media:1936/redetvparana/redetvparana/playlist.m3u8"}
-            { name: "RECORD", category: "Geral", url: "https://www.youtube.com/watch?v=wB3K_ESTQrA" }
-            { name: "TV CULTURA", category: "Geral", url: "https://cultura.uol.com.br/aovivo/" }
-            { name: "TNT", category: "Geral", url: "https://cdn-1.nxplay.com.br/TNT_TK/index.m3u8" }
-            { name: "RECORD NEWS", category: "Geral", url: "https://video02.logicahost.com.br/tvguara23/tvguara23/chunklist_w488754077.m3u8" }
-            { name: "GEEKDOT", category: "Geral", url: "https://stream.ichibantv.com:3764/hybrid/play.m3u8" }
-            { name: "POOP TV", category:  "Música", url: "https://stream.ichibantv.com:3522/hybrid/play.m3u8" }
-            { name: "JETSONS", category: "Geral", url: "https://stmv1.srvif.com/jetsontv/jetsontv/playlist.m3u8" }
-            { name: "TV BRASIL", category: "Geral", url: "https://tvbrasil-stream.ebc.com.br/index.m3u8" }
-            { name: "CANAL EDUCAÇÃO", category: "Geral", url: "https://canaleducacao-stream.ebc.com.br/index.m3u8" }
-            { name: "REDE BRASIL", category: "Geral", url: "https://video01.logicahost.com.br/redebrasil02/redebrasil02/playlist.m3u8" }
-            { name: "Cultura (PR)", category: "Geral", url: "https://youtu.be/ABVQXgr2LW4" }
-            { name: "RETRO TV", category: "Geral", url: "https://acesso.ecast.site:3070/live/awtvlive.m3u8" }
-            { name: "Vintage TV", category: "Geral", url: "https://video01.kshost.com.br:4443/rogerio7271/rogerio7271/playlist.m3u8" }
-            { name: "DarkFlix HD", category: "Filmes", url: "https://video01.soultv.com.br/darkflix/darkflix/playlist.m3u8" }
-            { name: "KroneHIT", category:  "Música", url: "https://bitcdn-kronehit.bitmovin.com/v2/hls/playlist.m3u8" }
-            { name: "TV MAX", category: "Música", url: "https://5cf4a2c2512a2.streamlock.net/tvmax/tvmax/playlist.m3u8" }
-            { name: "TV Séries", category: "Geral", url: "https://stmv1.srvif.com/tvserie/tvserie/playlist.m3u8" }
-            { name: "TV CLUBE", category: "Geral", url: "https://5c483b9d1019c.streamlock.net/8186/8186/playlist.m3u8" }
-            { name: "SBT", category: "Geral", url: "https://youtu.be/ABVQXgr2LW4" }
-            { name: "1onemus", category: "Música", url: "http://hz1.teleport.cc/HLS/HD.m3u8" }
-            { name: "MAIS UM", category: "Música", url: "https://stream.ichibantv.com:3230/hybrid/play.m3u8" }
+            { name: "SBT", category: "Geral", url: "https://youtu.be/ABVQXgr2LW4" },
+            { name: "+SBT", category: "Geral", url: "https://mais.sbt.com.br/" },
+            { name: "BAND", category: "Geral", url: "https://www.band.com.br/ao-vivo" },
+            { name: "REDE TV", category: "Geral", url: "https://geo.dailymotion.com/player/xgrus.html?video=kYe5OYErhldJ75Azib2" },
+            { name: "REDE TV 2", category: "Geral", url: " https://tv02.zas.media:1936/redetvparana/redetvparana/playlist.m3u8"},
+            { name: "RECORD", category: "Geral", url: "https://www.youtube.com/watch?v=wB3K_ESTQrA" },
+            { name: "TV CULTURA", category: "Geral", url: "https://cultura.uol.com.br/aovivo/" },
+            { name: "TNT", category: "Geral", url: "https://cdn-1.nxplay.com.br/TNT_TK/index.m3u8" },
+            { name: "RECORD NEWS", category: "Geral", url: "https://video02.logicahost.com.br/tvguara23/tvguara23/chunklist_w488754077.m3u8" },
+            { name: "GEEKDOT", category: "Geral", url: "https://stream.ichibantv.com:3764/hybrid/play.m3u8" },
+            { name: "POOP TV", category:  "Música", url: "https://stream.ichibantv.com:3522/hybrid/play.m3u8" },
+            { name: "JETSONS", category: "Infantil", url: "https://stmv1.srvif.com/jetsontv/jetsontv/playlist.m3u8" },
+            { name: "TV BRASIL", category: "Geral", url: "https://tvbrasil-stream.ebc.com.br/index.m3u8" },
+            { name: "CANAL EDUCAÇÃO", category: "Geral", url: "https://canaleducacao-stream.ebc.com.br/index.m3u8" },
+            { name: "REDE BRASIL", category: "Geral", url: "https://video01.logicahost.com.br/redebrasil02/redebrasil02/playlist.m3u8" },
+            { name: "Cultura (PR)", category: "Geral", url: "https://youtu.be/ABVQXgr2LW4" },
+            { name: "RETRO TV", category: "Geral", url: "https://acesso.ecast.site:3070/live/awtvlive.m3u8" },
+            { name: "Vintage TV", category: "Geral", url: "https://video01.kshost.com.br:4443/rogerio7271/rogerio7271/playlist.m3u8" },
+            { name: "DarkFlix HD", category: "Filmes", url: "https://video01.soultv.com.br/darkflix/darkflix/playlist.m3u8" },
+            { name: "KroneHIT", category:  "Música", url: "https://bitcdn-kronehit.bitmovin.com/v2/hls/playlist.m3u8" },
+            { name: "TV MAX", category: "Música", url: "https://5cf4a2c2512a2.streamlock.net/tvmax/tvmax/playlist.m3u8" },
+            { name: "TV Séries", category: "Geral", url: "https://stmv1.srvif.com/tvserie/tvserie/playlist.m3u8" },
+            { name: "TV CLUBE", category: "Geral", url: "https://5c483b9d1019c.streamlock.net/8186/8186/playlist.m3u8" },
+            { name: "SBT", category: "Geral", url: "https://youtu.be/ABVQXgr2LW4" },
+            { name: "1onemus", category: "Música", url: "http://hz1.teleport.cc/HLS/HD.m3u8" },
+            { name: "MAIS UM", category: "Música", url: "https://stream.ichibantv.com:3230/hybrid/play.m3u8" },
             { name: "Rock TV", category: "Música", url: "https://tv.broadcasting.ro/rocktv/85c83a80-4f71-4f2d-a8d6-43f676896bcb.m3u8" }
+            {"name":"Record News","category":"Notícias","url":"https://playplus-lh.akamaihd.net/i/pp_f_recordnews_l@422136/index_1_av-b.m3u8"},
+            {"name":"SBT (Regional)","category":"Abertos","url":"https://painel.zoeweb.com.br/live/b47826949a6483018560558142343779_720.m3u8"},
+        {"name":"TV Brasil","category":"Geral","url":"https://tvbrasil-stream.ebc.com.br/tvbrasil-stream/tvbrasil-stream.m3u8"},
+        {"name":"Red Bull TV","category":"Esportes","url":"https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8"},
+        {"name":"NASA TV","category":"Geral","url":"https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8"},
+        {"name":"Fashion TV","category":"Geral","url":"https://fash1043.cloudycdn.services/slive/_definst_/ftv_paris_adaptive.smil/playlist.m3u8"},
+        {"name":"Filme Teste","category":"Filmes","url":"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"},
+        {"name":"Globo","category":"Abertos","url":"http://95.141.35.86:8081/look/sptvl/playlist.m3u8"},
+        {"name":"TV Cultura MG","category":"Geral","url":"http://173.236.10.10:1935/redeatividade/redeatividade/playlist.m3u8"},
+        {"name":"TV Gazeta","category":"Geral","url":"http://172.93.110.130:1935/tvalternativa/tvalternativa/playlist.m3u8"},
+        {"name":"Combate","category":"Geral","url":"http://95.141.32.213:8081/look/combatel/playlist.m3u8"},
+        {"name":"Disney XD","category":"Infantil","url":"http://tv.ec.cx:1935/redecanais-stream-disneyxd/myStream/chunklist_w1378600076.m3u8"},
+        {"name":"NICK JR","category":"Infantil","url":"http://tv.ec.cx:1935/redecanais-stream-nick/myStream/chunklist_w1116862459.m3u8"},
+        {"name":"RETRO CARTOON","category":"Infantil","url":"http://stmv2.srvstm.com/cartoonr/cartoonr/playlist.m3u8"},
+        {"name":"ANIME TV","category":"Infantil","url":"http://video7.stream.mx:1935/raxatv/raxatv/chunklist_w884577146.m3u8"},
+        {"name":"Gloob","category":"Infantil","url":"#EXTINF:-1 tvg-logo=\"http://www.tvmagazine.com.br/imagens/icones/600/gloob.png\",GLOOB  http://95.141.32.136:8081/look/gloob/playlist.m3u8"},
+        {"name":"Telecine Action","category":"Filmes","url":"http://live-s101.abweb.com/liveabs101/ngrp:action.stream_bis/chunklist_f1tv_b1096000.m3u8"}
        
         ];
 
@@ -506,6 +524,7 @@
 </body>
 
 </html>
+
 
 
 
