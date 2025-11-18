@@ -1,6 +1,6 @@
 {
   "name": "BRC TV Ultimate",
-  "short_name": "BRC TV",
+  "short_name": "BRC TV Grátis",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
@@ -18,4 +18,5 @@
       "type": "image/png"
     }
   ]
+
 }
