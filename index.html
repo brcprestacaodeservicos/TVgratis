@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BRC TV GRÁTIS - Media Center</title>
+    
+    <!-- PWA Setup -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- Bibliotecas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #000; color: #fff; overflow: hidden; }
+        
+        /* Player Customizado */
+        .video-js .vjs-big-play-button {
+            background-color: rgba(37, 99, 235, 0.9); border: none; border-radius: 50%;
+            width: 80px; height: 80px; line-height: 80px; left: 50%; top: 50%;
+            transform: translate(-50%, -50%); transition: all 0.3s ease;
+        }
+        .video-js .vjs-big-play-button:hover { background-color: #1d4ed8; transform: translate(-50%, -50%) scale(1.1); }
+        .video-js .vjs-control-bar { background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); }
+        .vjs-error-display { display: none; } 
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2563eb; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* UI Elements */
+        .channel-item.active {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.15) 0%, transparent 100%);
+            border-left: 4px solid #2563eb;
+        }
+        
+        .tab-btn.active {
+            border-bottom: 2px solid #2563eb;
+            color: white;
+        }
+
+        /* Layout */
+        .app-layout { display: grid; grid-template-columns: 320px 1fr; height: 100vh; width: 100vw; }
+        @media (max-width: 1024px) {
+            .app-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+            #sidebar-container { order: 2; height: auto; overflow-y: visible; }
+            #player-container { order: 1; position: sticky; top: 0; z-index: 50; height: 40vh; min-height: 250px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-layout">
+        
+        <!-- BARRA LATERAL -->
+        <aside id="sidebar-container" class="bg-[#111] border-r border-[#222] flex flex-col h-full overflow-hidden">
+            
+            <!-- Header -->
+            <div class="p-4 bg-[#111] sticky top-0 z-20 border-b border-[#222] flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold">B</div>
+                    <span class="font-bold text-lg">BRC <span class="text-blue-500">MEDIA</span></span>
+                </div>
+                <button onclick="toggleAdmin()" class="p-2 text-gray-400 hover:text-white transition"><i data-lucide="settings" class="w-5 h-5"></i></button>
+            </div>
+
+            <!-- Abas de Navegação -->
+            <div class="flex border-b border-[#222] bg-[#141414]">
+                <button onclick="switchTab('tv')" id="tab-tv" class="tab-btn active flex-1 py-3 text-sm font-medium text-gray-400 hover:text-white transition flex justify-center gap-2">
+                    <i data-lucide="tv" class="w-4 h-4"></i> TV Online
+                </button>
+                <button onclick="switchTab('local')" id="tab-local" class="tab-btn flex-1 py-3 text-sm font-medium text-gray-400 hover:text-white transition flex justify-center gap-2">
+                    <i data-lucide="folder-open" class="w-4 h-4"></i> Arquivos
+                </button>
+            </div>
+
+            <!-- MODO TV: Busca e Categorias -->
+            <div id="view-tv" class="flex-1 flex flex-col overflow-hidden">
+                <div class="p-3 bg-[#111]">
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-500"></i>
+                        <input id="search-input" type="text" placeholder="Buscar canais..." class="w-full bg-[#1a1a1a] text-sm rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600 text-white placeholder-gray-600">
+                    </div>
+                </div>
+                <div class="px-3 pb-2 flex gap-2 overflow-x-auto no-scrollbar bg-[#111]">
+                    <button onclick="filterCategory('Todos')" class="cat-btn active bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">Todos</button>
+                    <button onclick="filterCategory('Filmes')" class="cat-btn bg-[#222] text-gray-400 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">Filmes</button>
+                    <button onclick="filterCategory('Esportes')" class="cat-btn bg-[#222] text-gray-400 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">Esportes</button>
+                </div>
+                <div id="channel-list" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
+            </div>
+
+            <!-- MODO LOCAL: Gerenciador de Arquivos -->
+            <div id="view-local" class="hidden flex-1 flex flex-col overflow-hidden">
+                <div class="p-4 grid grid-cols-2 gap-2 border-b border-[#222]">
+                    <button onclick="document.getElementById('file-input').click()" class="bg-[#222] hover:bg-[#333] text-white p-3 rounded-lg flex flex-col items-center text-xs font-bold transition">
+                        <i data-lucide="file-video" class="w-6 h-6 mb-1 text-blue-500"></i> Abrir Arquivo
+                    </button>
+                    <button onclick="document.getElementById('folder-input').click()" class="bg-[#222] hover:bg-[#333] text-white p-3 rounded-lg flex flex-col items-center text-xs font-bold transition">
+                        <i data-lucide="folder-search" class="w-6 h-6 mb-1 text-yellow-500"></i> Abrir Pasta
+                    </button>
+                </div>
+                <!-- Inputs Ocultos -->
+                <input type="file" id="file-input" multiple hidden accept="video/*,audio/*,image/*,.mkv,.avi,.wmv,.mov,.mp4,.mp3,.wav,.ogg,.jpg,.png,.gif">
+                <input type="file" id="folder-input" webkitdirectory directory multiple hidden>
+                
+                <div class="p-2 bg-[#1a1a1a] text-xs text-gray-400 font-bold flex justify-between items-center">
+                    <span>PLAYLIST LOCAL</span>
+                    <button onclick="clearLocalPlaylist()" class="text-red-400 hover:text-white"><i data-lucide="trash" class="w-3 h-3"></i></button>
+                </div>
+                <div id="local-list" class="flex-1 overflow-y-auto p-2 space-y-1">
+                    <div class="text-center text-gray-500 text-xs mt-10 p-4">
+                        Nenhum arquivo selecionado.<br>Abra um arquivo ou pasta para reproduzir.
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- PLAYER AREA -->
+        <main id="player-container" class="bg-black relative flex flex-col justify-center group">
+            <div class="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
+                
+                <!-- Video.js (Video e Audio) -->
+                <video id="main-player" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" crossorigin="anonymous" poster="https://via.placeholder.com/1920x1080/111111/333333?text=BRC+MEDIA+CENTER"></video>
+                
+                <!-- Visualizador de Imagem -->
+                <img id="image-viewer" class="hidden w-full h-full object-contain absolute inset-0 bg-black z-40" alt="Visualizador">
+                
+                <!-- Iframe (Web/Embeds) -->
+                <iframe id="iframe-player" class="absolute inset-0 w-full h-full hidden border-0 z-30" allow="autoplay; fullscreen"></iframe>
+
+                <!-- Erro Overlay -->
+                <div id="error-overlay" class="absolute inset-0 bg-black/90 hidden z-50 flex flex-col items-center justify-center text-center p-6">
+                    <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-500 mb-4"></i>
+                    <h3 class="text-xl font-bold text-white">Erro de Reprodução</h3>
+                    <p class="text-gray-400 text-sm mt-2 max-w-md">Formato não suportado pelo navegador ou arquivo corrompido.</p>
+                    <button onclick="playNextLocal()" class="mt-4 px-4 py-2 bg-blue-600 rounded hover:bg-blue-700 text-sm font-bold">Tentar Próximo</button>
+                </div>
+            </div>
+
+            <!-- Info Bar -->
+            <div class="absolute top-0 left-0 w-full p-4 bg-gradient-to-b from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10">
+                <h2 id="now-playing-title" class="text-xl font-bold text-white drop-shadow-lg">Selecione um conteúdo</h2>
+                <p id="now-playing-meta" class="text-xs text-blue-400 font-bold uppercase tracking-wider">Media Center</p>
+            </div>
+            
+            <!-- Controles de Playlist Local (Só aparece se houver playlist local ativa) -->
+            <div id="local-controls" class="hidden absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-black/80 px-4 py-2 rounded-full gap-4 z-20 border border-gray-700">
+                <button onclick="playPrevLocal()" class="text-white hover:text-blue-400"><i data-lucide="skip-back"></i></button>
+                <button onclick="playNextLocal()" class="text-white hover:text-blue-400"><i data-lucide="skip-forward"></i></button>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL ADMIN (Mantido para Web Channels) -->
+    <div id="admin-modal" class="fixed inset-0 bg-black/90 z-[100] hidden flex-col items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-[#1a1a1a] w-full max-w-md rounded-xl border border-[#333] shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+            <div class="p-4 border-b border-[#333] flex justify-between items-center bg-[#202020]">
+                <h3 class="font-bold text-white flex items-center gap-2"><i data-lucide="settings-2" class="w-4 h-4"></i> Configurações</h3>
+                <button onclick="toggleAdmin()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="login-view" class="p-8 flex flex-col items-center">
+                <input type="password" id="admin-pass" placeholder="Senha" class="w-full bg-[#0f0f0f] border border-[#333] text-white p-3 rounded mb-4 text-center">
+                <button onclick="verifyLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded font-bold">Entrar</button>
+            </div>
+            <div id="panel-view" class="hidden flex-1 flex-col overflow-hidden">
+                <div class="p-4 bg-[#111] border-b border-[#333] grid gap-2">
+                    <input id="new-name" placeholder="Nome" class="bg-[#222] text-white p-2 rounded text-sm">
+                    <div class="flex gap-2">
+                        <select id="new-cat" class="bg-[#222] text-white p-2 rounded text-sm w-1/3"><option>Geral</option><option>Filmes</option><option>Esportes</option></select>
+                        <input id="new-url" placeholder="URL" class="bg-[#222] text-white p-2 rounded text-sm flex-1">
+                    </div>
+                    <button onclick="addChannel()" class="bg-green-600 hover:bg-green-500 text-white p-2 rounded text-sm font-bold mt-1">Adicionar</button>
+                </div>
+                <ul id="admin-list" class="flex-1 overflow-y-auto p-2 space-y-1"></ul>
+                <div class="p-3 border-t border-[#333] bg-[#202020] flex justify-between text-xs">
+                    <button onclick="resetFactory()" class="text-red-400">Resetar</button>
+                    <button onclick="exportData()" class="text-blue-400">Backup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://vjs.zencdn.net/8.3.0/video.min.js"></script>
+    <script>
+        // --- CONFIGURAÇÃO ---
+        const ADMIN_PASSWORD = "admin";
+        const STORAGE_KEY = "brc_tv_v3_media";
+        
+        // Canais Web Padrão
+        const DEFAULT_CHANNELS = [
+            { name: "Tears of Steel (4K)", category: "Filmes", url: "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8" },
+            { name: "Big Buck Bunny", category: "Filmes", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" },
+            { name: "Akamai Live Test", category: "Geral", url: "https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8" }
+        ];
+
+        // Estado
+        let webChannels = JSON.parse(localStorage.getItem(STORAGE_KEY)) || DEFAULT_CHANNELS;
+        let localFiles = [];
+        let currentWebIndex = -1;
+        let currentLocalIndex = -1;
+        let player = null;
+        let activeTab = 'tv';
+        let imageTimer = null;
+
+        // --- INICIALIZAÇÃO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initPlayer();
+            lucide.createIcons();
+            renderWebList();
+            
+            // Event Listeners Arquivos
+            document.getElementById('file-input').addEventListener('change', handleFileSelect);
+            document.getElementById('folder-input').addEventListener('change', handleFileSelect);
+            document.getElementById('search-input').addEventListener('input', (e) => renderWebList(e.target.value));
+            
+            if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+                navigator.serviceWorker.register('sw.js').catch(console.error);
+            }
+        });
+
+        function initPlayer() {
+            player = videojs('main-player', {
+                fluid: true, responsive: true, controls: true, autoplay: false,
+                html5: { hls: { overrideNative: true } }
+            });
+            
+            player.on('ended', () => {
+                if (activeTab === 'local' && currentLocalIndex < localFiles.length - 1) {
+                    playNextLocal();
+                }
+            });
+
+            player.on('error', () => {
+                if(activeTab === 'local') document.getElementById('error-overlay').classList.remove('hidden');
+            });
+        }
+
+        // --- NAVEGAÇÃO DE ABAS ---
+        function switchTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            
+            document.getElementById('view-tv').classList.toggle('hidden', tab !== 'tv');
+            document.getElementById('view-local').classList.toggle('hidden', tab !== 'local');
+            
+            if(tab === 'local' && localFiles.length > 0) {
+                document.getElementById('local-controls').classList.remove('hidden');
+            } else {
+                document.getElementById('local-controls').classList.add('hidden');
+            }
+        }
+
+        // --- LÓGICA ARQUIVOS LOCAIS ---
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            if (!files.length) return;
+
+            // Filtrar extensões suportadas
+            const allowedExts = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.mpg', '.mpeg', '.m4v', '.webm', '.mp3', '.wav', '.ogg', '.wma', '.jpg', '.png', '.gif', '.webp', '.jpeg'];
+            
+            const newFiles = files.filter(f => {
+                const name = f.name.toLowerCase();
+                return allowedExts.some(ext => name.endsWith(ext));
+            }).sort((a, b) => a.name.localeCompare(b.name)); // Ordenar alfabeticamente
+
+            if (newFiles.length > 0) {
+                localFiles = newFiles;
+                renderLocalList();
+                playLocalFile(0); // Auto-play o primeiro
+                switchTab('local');
+            } else {
+                alert('Nenhum arquivo de mídia compatível encontrado.');
+            }
+            e.target.value = ''; // Reset input
+        }
+
+        function renderLocalList() {
+            const list = document.getElementById('local-list');
+            list.innerHTML = '';
+            localFiles.forEach((f, i) => {
+                const div = document.createElement('div');
+                div.className = `channel-item flex items-center p-2 cursor-pointer border-b border-[#222] hover:bg-[#1f1f1f] ${i === currentLocalIndex ? 'active' : ''}`;
+                div.onclick = () => playLocalFile(i);
+                
+                let icon = 'file';
+                if(f.type.startsWith('video')) icon = 'film';
+                else if(f.type.startsWith('audio')) icon = 'music';
+                else if(f.type.startsWith('image')) icon = 'image';
+
+                div.innerHTML = `
+                    <i data-lucide="${icon}" class="w-4 h-4 text-gray-500 mr-2"></i>
+                    <span class="text-sm truncate text-gray-300 flex-1">${f.name}</span>
+                `;
+                list.appendChild(div);
+            });
+            lucide.createIcons();
+            document.getElementById('local-controls').classList.remove('hidden');
+        }
+
+        function playLocalFile(index) {
+            if(index < 0 || index >= localFiles.length) return;
+            currentLocalIndex = index;
+            const file = localFiles[index];
+            const url = URL.createObjectURL(file);
+            const type = file.type;
+            const name = file.name.toLowerCase();
+
+            // UI Update
+            renderLocalList(); // Refresh active state
+            document.getElementById('now-playing-title').innerText = file.name;
+            document.getElementById('now-playing-meta').innerText = "Reproduzindo Local";
+            document.getElementById('error-overlay').classList.add('hidden');
+
+            // Reset Views
+            const vid = document.querySelector('.video-js');
+            const imgView = document.getElementById('image-viewer');
+            const iframe = document.getElementById('iframe-player');
+            
+            vid.classList.add('hidden');
+            imgView.classList.add('hidden');
+            iframe.classList.add('hidden');
+            player.pause();
+            clearTimeout(imageTimer);
+
+            // Detectar Tipo
+            if (type.startsWith('image') || name.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+                // MODO IMAGEM
+                imgView.src = url;
+                imgView.classList.remove('hidden');
+                // Slideshow simples: Próximo após 5s
+                imageTimer = setTimeout(playNextLocal, 5000);
+
+            } else {
+                // MODO VIDEO/AUDIO
+                vid.classList.remove('hidden');
+                player.src({ src: url, type: type || getMimeFromExt(name) });
+                player.play().catch(e => console.log("Autoplay falhou", e));
+            }
+        }
+
+        function getMimeFromExt(name) {
+            if(name.endsWith('.mkv')) return 'video/x-matroska';
+            if(name.endsWith('.avi')) return 'video/x-msvideo';
+            if(name.endsWith('.wmv')) return 'video/x-ms-wmv';
+            if(name.endsWith('.mov')) return 'video/quicktime';
+            return '';
+        }
+
+        function playNextLocal() { playLocalFile(currentLocalIndex + 1); }
+        function playPrevLocal() { playLocalFile(currentLocalIndex - 1); }
+        function clearLocalPlaylist() { localFiles = []; renderLocalList(); document.getElementById('local-controls').classList.add('hidden'); }
+
+        // --- LÓGICA TV ONLINE (WEB) ---
+        function renderWebList(term = "") {
+            const list = document.getElementById('channel-list');
+            list.innerHTML = '';
+            webChannels.filter(c => c.name.toLowerCase().includes(term.toLowerCase())).forEach((c, i) => {
+                const div = document.createElement('div');
+                div.className = 'channel-item flex items-center p-3 cursor-pointer border-b border-[#1a1a1a] hover:bg-[#1f1f1f] group';
+                div.onclick = () => loadWebChannel(i);
+                div.innerHTML = `
+                    <div class="w-8 h-8 rounded bg-[#222] flex items-center justify-center mr-3 text-xs font-bold text-gray-500">${c.name.substring(0,2).toUpperCase()}</div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-sm font-semibold text-gray-200 truncate">${c.name}</h4>
+                        <p class="text-[10px] text-gray-500">${c.category}</p>
+                    </div>
+                    <i data-lucide="play" class="w-3 h-3 text-blue-500 opacity-0 group-hover:opacity-100"></i>
+                `;
+                list.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        function loadWebChannel(index) {
+            const ch = webChannels[index];
+            currentWebIndex = index;
+            
+            // Resetar UI Local
+            document.getElementById('image-viewer').classList.add('hidden');
+            document.getElementById('local-controls').classList.add('hidden');
+            
+            document.getElementById('now-playing-title').innerText = ch.name;
+            document.getElementById('now-playing-meta').innerText = ch.category;
+
+            const vid = document.querySelector('.video-js');
+            const iframe = document.getElementById('iframe-player');
+            
+            const isStream = ch.url.match(/\.(m3u8|mp4)$/i);
+            
+            if (isStream) {
+                iframe.classList.add('hidden');
+                vid.classList.remove('hidden');
+                player.src({ src: ch.url, type: ch.url.endsWith('.m3u8') ? 'application/x-mpegURL' : 'video/mp4' });
+                player.play().catch(()=>{});
+            } else {
+                player.pause();
+                vid.classList.add('hidden');
+                iframe.classList.remove('hidden');
+                iframe.src = ch.url;
+            }
+            if(window.innerWidth < 1024) window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function filterCategory(cat) {
+            const list = document.getElementById('channel-list');
+            list.innerHTML = '';
+            webChannels.filter(c => cat === 'Todos' || c.category === cat).forEach((c, i) => {
+                // Mesma lógica de render
+                const div = document.createElement('div');
+                div.className = 'channel-item flex items-center p-3 cursor-pointer border-b border-[#1a1a1a] hover:bg-[#1f1f1f] group';
+                div.onclick = () => loadWebChannel(i);
+                div.innerHTML = `
+                    <div class="w-8 h-8 rounded bg-[#222] flex items-center justify-center mr-3 text-xs font-bold text-gray-500">${c.name.substring(0,2).toUpperCase()}</div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-sm font-semibold text-gray-200 truncate">${c.name}</h4>
+                        <p class="text-[10px] text-gray-500">${c.category}</p>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+            document.querySelectorAll('.cat-btn').forEach(b => {
+                b.className = b.innerText === cat ? 'cat-btn active bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold transition' : 'cat-btn bg-[#222] text-gray-400 px-3 py-1 rounded-full text-xs font-bold transition';
+            });
+        }
+
+        // --- ADMIN FUNCS (Simplificadas) ---
+        function toggleAdmin() {
+            const m = document.getElementById('admin-modal');
+            m.classList.toggle('hidden'); m.classList.toggle('flex');
+            if(!m.classList.contains('hidden')) {
+                 document.getElementById('login-view').classList.remove('hidden');
+                 document.getElementById('panel-view').classList.add('hidden');
+            }
+        }
+        function verifyLogin() {
+            if(document.getElementById('admin-pass').value === ADMIN_PASSWORD) {
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('panel-view').classList.remove('hidden');
+                renderAdminList();
+            }
+        }
+        function renderAdminList() {
+            const ul = document.getElementById('admin-list'); ul.innerHTML = '';
+            webChannels.forEach((c,i) => {
+                const li = document.createElement('li');
+                li.className = 'bg-[#222] p-2 rounded flex justify-between text-xs items-center';
+                li.innerHTML = `<span>${c.name}</span><button onclick="delChannel(${i})" class="text-red-500 font-bold">X</button>`;
+                ul.appendChild(li);
+            });
+        }
+        function addChannel() {
+            const n = document.getElementById('new-name').value;
+            const u = document.getElementById('new-url').value;
+            if(n && u) { webChannels.push({name:n, category:'Geral', url:u}); localStorage.setItem(STORAGE_KEY, JSON.stringify(webChannels)); renderAdminList(); renderWebList(); }
+        }
+        function delChannel(i) { webChannels.splice(i,1); localStorage.setItem(STORAGE_KEY, JSON.stringify(webChannels)); renderAdminList(); renderWebList(); }
+        function resetFactory() { webChannels=[...DEFAULT_CHANNELS]; localStorage.setItem(STORAGE_KEY, JSON.stringify(webChannels)); renderAdminList(); renderWebList(); }
+        function exportData() {
+            const a = document.createElement('a');
+            a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(webChannels));
+            a.download = "backup.json"; a.click();
+        }
+    </script>
+</body>
+</html>
