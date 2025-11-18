@@ -69,7 +69,7 @@
             <div class="p-4 bg-[#111] sticky top-0 z-20 border-b border-[#222] flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold">B</div>
-                    <span class="font-bold text-lg">BRC <span class="text-blue-500">MEDIA</span></span>
+                    <span class="font-bold text-lg">BRC <span class="text-blue-500">MEDIA TV Online</span></span>
                 </div>
                 <button onclick="toggleAdmin()" class="p-2 text-gray-400 hover:text-white transition"><i data-lucide="settings" class="w-5 h-5"></i></button>
             </div>
@@ -195,14 +195,21 @@
     <script src="https://vjs.zencdn.net/8.3.0/video.min.js"></script>
     <script>
         // --- CONFIGURAÇÃO ---
-        const ADMIN_PASSWORD = "admin";
+        const ADMIN_PASSWORD = "08242979";
         const STORAGE_KEY = "brc_tv_v3_media";
         
         // Canais Web Padrão
         const DEFAULT_CHANNELS = [
             { name: "Tears of Steel (4K)", category: "Filmes", url: "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8" },
             { name: "Big Buck Bunny", category: "Filmes", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" },
-            { name: "Akamai Live Test", category: "Geral", url: "https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8" }
+            { name: "SBT", category: "Geral", url: "https://youtu.be/ABVQXgr2LW4" }
+            { name: "BAND", category: "Geral", url: "https://www.band.com.br/ao-vivo" }
+            { name: "REDE TV", category: "Geral", url: "https://geo.dailymotion.com/player/xgrus.html?video=kYe5OYErhldJ75Azib2" }
+            { name: "RECORD", category: "Geral", url: "https://www.youtube.com/watch?v=wB3K_ESTQrA" }
+            { name: "TV CULTURA", category: "Geral", url: "https://cultura.uol.com.br/aovivo/" }
+            { name: "SBT", category: "Geral", url: "https://youtu.be/ABVQXgr2LW4" }
+            { name: "SBT", category: "Geral", url: "https://youtu.be/ABVQXgr2LW4" }
+            { name: "SBT", category: "Geral", url: "https://youtu.be/ABVQXgr2LW4" }
         ];
 
         // Estado
@@ -475,4 +482,5 @@
         }
     </script>
 </body>
+
 </html>
